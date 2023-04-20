@@ -1,0 +1,29 @@
+<html>
+        <head>
+            <title>IoT Exam Project</title>
+        </head>
+        <body>
+            <h1>Weather Station</h1>
+            <button onclick="buttonClick(1)">Button 1</button>
+            <button onclick="buttonClick(2)">Button 2</button>
+            <button onclick="buttonClick(3)">Button 3</button>
+            <button onclick="buttonClick(4)">Button 4</button>
+            
+            <script>
+                function buttonClick(buttonNumber) {
+                    // Send an HTTP request to the Flask endpoint with the buttonNumber
+                    fetch('/button/' + buttonNumber, {method: 'POST'})
+                    .then(response => {
+                        if (response.ok) {
+                            alert("Button " + buttonNumber + " clicked!");
+                        } else {
+                            alert("Failed to click Button " + buttonNumber);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            </script>
+        </body>
+        </html>
