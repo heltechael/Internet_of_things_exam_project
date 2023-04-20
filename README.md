@@ -2,7 +2,7 @@
 Exam project for Internet of Things course at AU 2023.
 
 ## Installation
-1) Install dependencies with <code>pip -r requirements</code>.
+1) Install dependencies with <code>pip install -r requirements</code>.
 
 ## Running 
 1) Run <code>python server.py</code>.
