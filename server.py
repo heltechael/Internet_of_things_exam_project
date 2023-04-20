@@ -51,6 +51,10 @@ def handle_mqtt_message(client, userdata, message):
 def index():
     return render_template('index.html')
 
+@app.route('/hello', methods=['GET', 'POST'])
+def hello():
+    return make_response({'message': 'Hello World!'}, 200)
+
 @app.route('/button/<int:button_number>', methods=['POST'])
 def button(button_number):
     if button_number == 1:
@@ -65,10 +69,6 @@ def button(button_number):
 def sensor_data():
     global received_data
     return make_response({'sensor_data': received_data}, 200)
-
-@app.route('/hello', methods=['GET', 'POST'])
-def hello():
-    return make_response({'message': 'Hello World!'}, 200)
 
 @app.errorhandler(500)
 def server_error(e):
