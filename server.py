@@ -7,9 +7,17 @@ app = Flask(__name__)
 
 @app.route('/hello', methods=['GET', 'POST'])
 def hello():
-    print("Hello!")
-    print("this runs locally")
     return make_response({'message': 'Hello World!'}, 200)
+
+@app.route('/hello-py', methods=['POST'])
+def helloPy():
+    return make_response({'message': 'Hello World from Pi'}, 200)
+
+@app.route('/statistics', methods=['GET'])
+def getStatistics():
+    stats = [1,2,3,4,5]
+    return make_response(stats, 200)
+
 
 @app.errorhandler(500)
 def server_error(e):
