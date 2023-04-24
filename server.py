@@ -49,7 +49,7 @@ def handle_mqtt_message(client, userdata, message):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('indexcopy.html')
 
 @app.route('/hello', methods=['GET', 'POST'])
 def hello():

@@ -1,0 +1,124 @@
+<html>
+    <head>
+        <title>IoT Exam Project</title>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+        </style>
+        <script>
+            async function buttonClick(buttonNumber) {
+                const response = await fetch('/button/' + buttonNumber, {method: 'POST'})
+                if (response.ok) {
+                    alert("Button " + buttonNumber + " clicked!");
+                } else {
+                    alert("Failed to click Button " + buttonNumber);
+                }
+            }
+
+            async function updateSensorData() {
+                const response = await fetch('/sensor_data');
+                const data = await response.json();
+                updateDataQueue(data.sensor_data); // Pass only sensor_data array
+            }
+
+            setInterval(updateSensorData, 200);
+
+            const maxDataCount = 1;
+            let dataQueue = [];
+
+            function updateDataQueue(sensor_data) {
+                dataQueue = [...dataQueue, ...sensor_data]; // Use spread operator to concatenate arrays
+
+                if (dataQueue.length > maxDataCount) {
+                    dataQueue = dataQueue.slice(-maxDataCount); // Keep the last maxDataCount elements
+                }
+
+                renderDataList();
+            }
+
+            function renderDataList() {
+              let tableHTML = "<tr><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>";
+              dataQueue.forEach(row => {
+                  tableHTML += `<tr>
+                                  <td>${row.temperature.toFixed(2)}</td>
+                                  <td>${row.humidity.toFixed(2)}</td>
+                                  <td>${row.pressure.toFixed(2)}</td>
+                                </tr>`;
+              });
+
+              document.getElementById("sensorDataTable").innerHTML = tableHTML;
+          }
+            
+            // Function to generate temperature data from dataQueue
+            async function generateTemperatureData() {
+              const chart = new Chart(document.getElementById("temperatureChart"), {
+                  type: 'line',
+                  data: {
+                      labels: [],
+                      datasets: [{
+                          label: 'Temperature (°C)',
+                          data: [],
+                          borderColor: 'rgb(255, 99, 132)',
+                          fill: false,
+                      }]
+                  },
+                  options: {
+                      responsive: true,
+                      scales: {
+                          xAxes: [{
+                              display: true,
+                          }],
+                          yAxes: [{
+                              display: true,
+                              ticks: {
+                                  suggestedMin: 20,
+                                  suggestedMax: 30,
+                              }
+                          }]
+                      },
+                  }
+              });
+          
+              while (true) {
+                //switch the temperature data with the sensor data
+
+                  const temperature = dataQueue[dataQueue.length - 1].temperature; // Get last temperature from dataQueue
+                  //make a average of the last 10 values of the temperature
+                 
+                  const timestamp = new Date().toLocaleTimeString(); // Get current time as a string
+                  chart.data.labels.push(timestamp); // Add timestamp to chart labels
+                  chart.data.datasets[0].data.push(temperature); // Add temperature to chart data
+                  chart.update(); // Update chart
+                // waits for 1 min to print the next data 
+                await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 sec before generating new temperature data
+                //await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before generating new temperature data
+              }
+          }
+          
+        </script>
+    </head>
+    <body>
+      <h1>Weather Station</h1>
+      <button onclick="buttonClick(1)">Start Measuring</button>
+      <button onclick="buttonClick(2)">Stop Measuring</button>
+      <button onclick="buttonClick(3)">Button 3</button>
+      <button onclick="buttonClick(4)">Button 4</button>
+      <button onclick="generateTemperatureData()">Generate Temperature Data</button>
+      
+      <h2>Sensor Data</h2>
+      <table id="sensorDataTable">
+        <tr><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>
+    </table>
+      </br>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <canvas id="temperatureChart" width = "1000" height = "200"></canvas>
+
+    </body>
+</html>
