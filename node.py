@@ -4,6 +4,7 @@ from random import randrange
 import paho.mqtt.client as mqtt
 
 def get_fake_sensor_data():
+    time.sleep(3)
     return {
         'temperature': randrange(10),
         'humidity': randrange(10),

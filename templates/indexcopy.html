@@ -22,13 +22,31 @@
                 }
             }
 
-            async function updateSensorData() {
-                const response = await fetch('/sensor_data');
-                const data = await response.json();
-                updateDataQueue(data.sensor_data); // Pass only sensor_data array
-            }
 
-            setInterval(updateSensorData, 200);
+             
+            function updateTable(data) {
+                var table = document.getElementById("sensorDataTable");
+                var rows = table.getElementsByTagName("tr");
+                key_cells = rows[0].getElementsByTagName("th");
+                data_cells = rows[1].getElementsByTagName("td");
+                    
+                for(var i = 0; i < 3; i++){
+                    key = key_cells[i].innerHTML.toLowerCase();
+                    if(key in data){
+                        data_cells[i].innerHTML = data[key];
+                    }
+                }       
+            }
+            
+
+            // async function updateSensorData() {
+            //     const response = await fetch('/sensor_data');
+            //     const data = await response.json();
+            //     updateDataQueue(data.sensor_data); // Pass only sensor_data array
+            // }
+
+            // setInterval(updateSensorData, 200);
+
 
             const maxDataCount = 1;
             let dataQueue = [];
@@ -43,18 +61,20 @@
                 renderDataList();
             }
 
-            function renderDataList() {
-              let tableHTML = "<tr><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>";
-              dataQueue.forEach(row => {
-                  tableHTML += `<tr>
-                                  <td>${row.temperature.toFixed(2)}</td>
-                                  <td>${row.humidity.toFixed(2)}</td>
-                                  <td>${row.pressure.toFixed(2)}</td>
-                                </tr>`;
-              });
+        //     function renderDataList() {
+        //       let tableHTML = "<tr><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>";
+        //       dataQueue.forEach(row => {
+        //           tableHTML += `<tr>
+        //                           <td>${row.temperature.toFixed(2)}</td>
+        //                           <td>${row.humidity.toFixed(2)}</td>
+        //                           <td>${row.pressure.toFixed(2)}</td>
+        //                         </tr>`;
+        //       });
 
-              document.getElementById("sensorDataTable").innerHTML = tableHTML;
-          }
+        //       document.getElementById("sensorDataTable").innerHTML = tableHTML;
+        //   }
+
+          
             
             // Function to generate temperature data from dataQueue
             async function generateTemperatureData() {
@@ -114,11 +134,26 @@
       
       <h2>Sensor Data</h2>
       <table id="sensorDataTable">
-        <tr><th>Temperature</th><th>Humidity</th><th>Pressure</th></tr>
-    </table>
+        <tr><th>Temperature</th><th>Humidity</th><th>Pressure</th>
+        </tr>
+        <tr><td>0</td><td>0</td><td>0</td>
+        </tr>
+      </table>
       </br>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <canvas id="temperatureChart" width = "1000" height = "200"></canvas>
 
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+        <script type="text/javascript" charset="utf-8">
+            var socket = io();
+            socket.on('connect', function() {
+                socket.emit('client_connect', {data: 'Client connected to socket!'});
+            });
+
+
+            socket.on('mqtt_message', function(msg) {
+            const data = msg
+            updateTable(data)
+             });
+        </script>      
     </body>
 </html>
