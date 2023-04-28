@@ -9,6 +9,7 @@ Members:
 
 ## Installation
 1) Install dependencies with <code>pip install -r requirements</code>.
+2) Install eventlet
 
 ## Running 
 1) Open terminal and start mosquitto: </code>mosquitto -p 9001</code>.

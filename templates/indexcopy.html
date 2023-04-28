@@ -3,15 +3,60 @@
         <title>IoT Exam Project</title>
         <style>
             table {
-                border-collapse: collapse;
+              border-collapse: collapse;
+              margin-top: 20px;
             }
+        
+            th,
+            td {
+              border: 1px solid black;
+              padding: 8px;
+              text-align: left;
+            }
+        
+            #temperatureChart {
+                width: 100%;
+                height: 150px;
+                margin-top: 20px;
+                display: inline;
+              }
+              #humidityChart {
+                width: 100%;
+                height: 150px;
+                margin-top: 20px;
+                display: inline;
+              }
+              #pressureChart {
+                width: 100%;
+                height: 150px;
+                margin-top: 20px;
+                display: inline;
+              }
+            .chart-title {
+              font-size: 24px;
+              font-weight: bold;
+              text-align: center;
+              margin-top: 10px;
+              margin-bottom: 20px;
+            }
+            .my-button {
+                background-color: #4CAF50; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+              }
+              #weatherStation {
+                text-align: center;
+              }
+          </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-            th, td {
-                border: 1px solid black;
-                padding: 8px;
-                text-align: left;
-            }
-        </style>
         <script>
             async function buttonClick(buttonNumber) {
                 const response = await fetch('/button/' + buttonNumber, {method: 'POST'})
@@ -77,60 +122,238 @@
           
             
             // Function to generate temperature data from dataQueue
-            async function generateTemperatureData() {
-              const chart = new Chart(document.getElementById("temperatureChart"), {
-                  type: 'line',
-                  data: {
-                      labels: [],
-                      datasets: [{
-                          label: 'Temperature (°C)',
-                          data: [],
-                          borderColor: 'rgb(255, 99, 132)',
-                          fill: false,
-                      }]
-                  },
-                  options: {
-                      responsive: true,
-                      scales: {
-                          xAxes: [{
-                              display: true,
-                          }],
-                          yAxes: [{
-                              display: true,
-                              ticks: {
-                                  suggestedMin: 20,
-                                  suggestedMax: 30,
-                              }
-                          }]
-                      },
-                  }
-              });
-          
-              while (true) {
-                //switch the temperature data with the sensor data
+           async function generateTemperatureData() {
+        const chart = new Chart(document.getElementById("temperatureChart"), {
+            type: "line",
+            data: {
+            labels: [],
+            datasets: [
+                {
+                label: "Temperature (°C)",
+                data: [],
+                borderColor: "rgb(255, 99, 132)",
+                fill: false,
+                },
+            ],
+            },
+            options: {
+            responsive: true,
+            title: {
+                display: false,
+                text: "Temperature Chart",
+                fontSize: 18,
+            },
+            legend: {
+                display: false,
+            },
+            scales: {
+                xAxes: [
+                {
+                    display: true,
+                    ticks: {
+                    fontSize: 14,
+                    },
+                },
+                ],
+                yAxes: [
+                {
+                    display: true,
+                    ticks: {
+                    fontSize: 14,
+                    min: 0,
+                    max: 50
+                    },
+                    gridLines: {
+                    lineWidth: 1,
+                    },
+                },
+                ],
+            },
+            },
+        });
+        var table = document.getElementById("sensorDataTable");
+        var rows = table.getElementsByTagName("tr");
+        while (true) {
+            //change the temperature with data_cells
 
-                  const temperature = dataQueue[dataQueue.length - 1].temperature; // Get last temperature from dataQueue
-                  //make a average of the last 10 values of the temperature
-                 
-                  const timestamp = new Date().toLocaleTimeString(); // Get current time as a string
-                  chart.data.labels.push(timestamp); // Add timestamp to chart labels
-                  chart.data.datasets[0].data.push(temperature); // Add temperature to chart data
-                  chart.update(); // Update chart
-                // waits for 1 min to print the next data 
-                await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 sec before generating new temperature data
-                //await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before generating new temperature data
-              }
-          }
-          
+            key_cells = rows[0].getElementsByTagName("th");
+            data_cells = rows[1].getElementsByTagName("td");
+
+            //update temperature with data_cells
+
+            const temperature = data_cells[0].innerHTML;
+            const timestamp = new Date().toLocaleTimeString(); // Get current time as a string
+            chart.data.labels.push(timestamp); // Add timestamp to chart labels
+            chart.data.datasets[0].data.push(temperature); // Add temperature to chart data
+            if (chart.data.labels.length >= 10) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+            }
+            chart.update(); // Update chart
+            // waits for 1 min to print the next data
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 5 sec before generating new temperature data
+            //await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before generating new temperature data
+        }
+        }
+
+        async function generateHumidtyData() {
+            const chart = new Chart(document.getElementById("humidityChart"), {
+                type: "line",
+                data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Humidity (%)",
+                        data: [],
+                        borderColor: "rgb(54, 162, 235)", // Change color here
+                        fill: false,
+                    },
+                ],
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: false,
+                        text: "Humidity Chart",
+                        fontSize: 18,
+                    },
+                    legend: {
+                        display: false,
+                    },
+                    scales: {
+                        xAxes: [
+                        {
+                            display: true,
+                            ticks: {
+                            fontSize: 14,
+                            },
+                        },
+                        ],
+                        yAxes: [
+                        {
+                            display: true,
+                            ticks: {
+                            fontSize: 14,
+                            min: 0,
+                            max: 50
+                            },
+                            gridLines: {
+                            lineWidth: 1,
+                            },
+                        },
+                        ],
+                    },
+                    },
+                });
+                var table = document.getElementById("sensorDataTable");
+                var rows = table.getElementsByTagName("tr");
+                while (true) {
+                    //change the temperature with data_cells
+        
+                    key_cells = rows[0].getElementsByTagName("th");
+                    data_cells = rows[1].getElementsByTagName("td");
+        
+                    //update temperature with data_cells
+        
+                    const temperature = data_cells[1].innerHTML;
+                    const timestamp = new Date().toLocaleTimeString(); // Get current time as a string
+                    chart.data.labels.push(timestamp); // Add timestamp to chart labels
+                    chart.data.datasets[0].data.push(temperature); // Add temperature to chart data
+                    if (chart.data.labels.length >= 10) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                    }
+                    chart.update(); // Update chart
+                    // waits for 1 min to print the next data
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 5 sec before generating new temperature data
+                    //await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before generating new temperature data
+                }
+                }
+
+            async function generatePressureData() {
+                const chart = new Chart(document.getElementById("pressureChart"), {
+                    type: "line",
+                    data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Pressure (%)",
+                            data: [],
+                            borderColor: "rgb(39, 174, 96)", // Change color here
+                            fill: false,
+                        },
+                    ],
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: false,
+                            text: "Pressure Chart",
+                            fontSize: 18,
+                        },
+                        legend: {
+                            display: false,
+                        },
+                        scales: {
+                            xAxes: [
+                            {
+                                display: true,
+                                ticks: {
+                                fontSize: 14,
+                                },
+                            },
+                            ],
+                            yAxes: [
+                            {
+                                display: true,
+                                ticks: {
+                                fontSize: 14,
+                                min: 0,
+                                max: 50
+                                },
+                                gridLines: {
+                                lineWidth: 1,
+                                },
+                            },
+                            ],
+                        },
+                        },
+                    });
+                    var table = document.getElementById("sensorDataTable");
+                    var rows = table.getElementsByTagName("tr");
+                    while (true) {
+                        //change the temperature with data_cells
+            
+                        key_cells = rows[0].getElementsByTagName("th");
+                        data_cells = rows[1].getElementsByTagName("td");
+            
+                        //update temperature with data_cells
+            
+                        const temperature = data_cells[2].innerHTML;
+                        const timestamp = new Date().toLocaleTimeString(); // Get current time as a string
+                        chart.data.labels.push(timestamp); // Add timestamp to chart labels
+                        chart.data.datasets[0].data.push(temperature); // Add temperature to chart data
+                        if (chart.data.labels.length >= 10) {
+                        chart.data.labels.shift();
+                        chart.data.datasets[0].data.shift();
+                        }
+                        chart.update(); // Update chart
+                        // waits for 1 min to print the next data
+                        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 5 sec before generating new temperature data
+                        //await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before generating new temperature data
+                    }
+                    }
         </script>
     </head>
     <body>
-      <h1>Weather Station</h1>
-      <button onclick="buttonClick(1)">Start Measuring</button>
-      <button onclick="buttonClick(2)">Stop Measuring</button>
-      <button onclick="buttonClick(3)">Button 3</button>
-      <button onclick="buttonClick(4)">Button 4</button>
-      <button onclick="generateTemperatureData()">Generate Temperature Data</button>
+        <h1 id="weatherStation">Weather Station</h1>
+      <button class = "my-button" onclick="buttonClick(1)">Start Measuring</button>
+      <button class = "my-button" onclick="buttonClick(2)">Stop Measuring</button>
+      <button class = "my-button" onclick="buttonClick(3)">Button 3</button>
+      <button class = "my-button" onclick="buttonClick(4)">Button 4</button>
+      <button class = "my-button" onclick="generateTemperatureData()">Generate Temperature Data</button>
+      <button class = "my-button" onclick="generateHumidtyData()">Generate Humidty Data</button>
+      <button class = "my-button" onclick="generatePressureData()">Generate Pressure Data</button>
       
       <h2>Sensor Data</h2>
       <table id="sensorDataTable">
@@ -149,11 +372,29 @@
                 socket.emit('client_connect', {data: 'Client connected to socket!'});
             });
 
-
             socket.on('mqtt_message', function(msg) {
             const data = msg
-            updateTable(data)
+            updateTable(data) 
              });
         </script>      
+        <style>
+            .chart-container {
+                width: 40%;
+                display: inline-block;
+            }
+        </style>
+        
+        <div class="chart-container">
+            <canvas id="temperatureChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="humidityChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="pressureChart"></canvas>
+        </div>
+        
     </body>
 </html>
