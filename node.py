@@ -3,15 +3,60 @@ import json
 from random import randrange
 import paho.mqtt.client as mqtt
 
+temp = 0
+humid = 0
+press = 0
+
+# Define callback functions
+def on_connect_to_pi(client, userdata, flags, rc):
+    print("Connected to MQTT broker")
+    client.subscribe("pc/temperature")  # Subscribe to the topic where Raspberry Pi publishes temperature data
+    client.subscribe("pc/humidity")
+    client.subscribe("pc/pressure")
+    
+def on_message_to_pi(client, userdata, msg):
+    global temp, humid, press
+    
+    if msg.topic == "pc/temperature":
+        temp = float(msg.payload.decode())
+    if msg.topic == "pc/humidity":
+        humid = float(msg.payload.decode())
+    if msg.topic == "pc/pressure":
+        press = float(msg.payload.decode())
+    
+    print("Received temperature:", temp)
+    print("Received humidity:", humid)
+    print("Received pressure:", press)
+# Create an MQTT client instance
+clientPi = mqtt.Client()
+
+# Configure the callbacks
+clientPi.on_connect = on_connect_to_pi
+clientPi.on_message = on_message_to_pi
+
+# Connect to the MQTT broker
+broker_address = "localhost"
+broker_portPi = 9001
+clientPi.connect(broker_address, broker_portPi)
+
+# Start the MQTT loop to listen for messages
+clientPi.loop_start()
+
+
 def get_fake_sensor_data():
+<<<<<<< Updated upstream
+=======
+    time.sleep(3)
+    global temp
+>>>>>>> Stashed changes
     return {
-        'temperature': randrange(10),
-        'humidity': randrange(10),
-        'pressure': randrange(10),
+        'temperature': temp,
+        'humidity': humid,
+        'pressure': press,
     }
 
 broker_url = "localhost"
-broker_port = 9001
+broker_port = 8001
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code: " + str(rc))

@@ -17,7 +17,7 @@ CORS(app)
 
 # Configure Flask-MQTT
 app.config['MQTT_BROKER_URL'] = 'localhost'
-app.config['MQTT_BROKER_PORT'] = 9001
+app.config['MQTT_BROKER_PORT'] = 8001
 #app.config['MQTT_USERNAME'] = 'username'
 #app.config['MQTT_PASSWORD'] = 'password'
 
