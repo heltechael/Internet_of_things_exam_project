@@ -20,10 +20,8 @@ Members:
 7) Inside the configuration file, add the following lines to configure the MQTT broker:<code>listener 9001</code> below of it add that <code>allow_anonymous true</code>
 8) Save the changes and exit the nano editor
 9) Run the Mosquitto MQTT broker with the updated configuration file: <code>mosquitto -c /usr/share/doc/mosquitto/examples/mosquitto.conf -v </code>
-10) Also open a new terminal and start another mosquitto to run the server connection between another node: <code>mosquitto -p 9001</code>.
-11) Open new terminal and start server: <code>python server.py</code>.
-12) Open new terminal and connect nodes: <code>python node.py</code>.
-13) Run the mqtt_test.py file inside of the Rasberry Pi to send the data.
+10) Open new terminal and start server: <code>python server.py</code>.
+11) Run the mqtt_test.py file inside of the Rasberry Pi to send the data.
 
 ## Making sure everything works locally
 1) In terminal
