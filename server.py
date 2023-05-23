@@ -8,10 +8,12 @@ from flask_mqtt import Mqtt
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from measurement import Measurement
-
+from random import randrange
 import logging
 import json
 from utils import is_raspberry_pi
+from json import loads, JSONDecodeError
+import sqlite3
 
 # Instantiate the Flask app
 app = Flask(__name__)
@@ -23,6 +25,28 @@ app.config['MQTT_BROKER_URL'] = 'localhost'
 app.config['MQTT_BROKER_PORT'] = 9001
 
 mqtt = Mqtt(app)  # Instantiate Flask-MQTT
+
+#Sqllite database
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect('database2.db')
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+def init_db():
+    with app.app_context():
+        db = get_db()
+        c = db.cursor()
+        c.execute("DROP TABLE IF EXISTS measurements")
+        with app.open_resource('schema.sql', mode='r') as f:
+            c.executescript(f.read())
+        db.commit()
 
 @mqtt.on_connect()
 def handle_mqtt_connect(client, userdata, flags, rc):
@@ -40,8 +64,21 @@ def handle_mqtt_subscribe(client, userdata, mid, granted_qos):
 def handle_mqtt_message(client, userdata, message):
     print("Received message: ", message.payload.decode())
     data = message.payload.decode()
-    socketio.emit('mqtt_message', data)
-    # add to db
+    try:
+        data_dict = json.loads(data)
+        measurement = Measurement.from_dict(data_dict)
+        socketio.emit('mqtt_message', measurement.to_dict())
+
+        # Store in DB:
+        # Database connection and insert
+        with app.app_context():
+            conn = get_db()
+            c = conn.cursor()
+            c.execute("INSERT INTO measurements (sensor_id, value, timestamp) VALUES (?, ?, ?)",
+                    (measurement.sensor_id, measurement.value, measurement.timestamp))
+            conn.commit()
+    except JSONDecodeError:
+        pass
 
 @app.route('/')
 def index():
@@ -74,7 +111,8 @@ def server_error(e):
 def handle_my_custom_event(json):
     print('received json: ' + str(json))
 
-# Start the Flask app 
+# Start the Flask app
+init_db() 
 host_local_computer = "localhost"   # Listen for connections on the local computer
 host_local_network = "0.0.0.0"      # Listen for connections on the local network
 socketio.run(app, allow_unsafe_werkzeug=True, host=host_local_network if is_raspberry_pi() else host_local_computer, port=9000)

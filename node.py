@@ -6,6 +6,8 @@ from datetime import datetime
 from measurement import Measurement
 
 def get_fake_sensor_data():
+    time.sleep(1)
+    
     return {
         'temperature': Measurement("temperature", randrange(10)),
         'humidity': Measurement("humidity", randrange(10)),
