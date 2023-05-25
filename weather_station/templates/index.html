@@ -1,0 +1,174 @@
+<html>
+
+<head>
+    <title>IoT Exam Project</title>
+    <link rel=stylesheet href="../static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+        crossorigin="anonymous"></script>
+
+</head>
+
+<body onload="init();">
+    <div class="banner">
+        <h1 id="weatherStation">Weather Station</h1>
+        <h2 id="currentMeasurement">0</h2>
+
+        <div class="buttonContainer">
+            <div class="BtnGroup"> <button class="regularButton" id="temperature"
+                    onclick="buttonClick(id)">Temperature</button>
+                <label class="switch">
+                    <input type="checkbox" name="temperature" onchange="toggleDataFlow(this)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="BtnGroup">
+                <button class="regularButton" id="humidity" onclick="buttonClick(id)">Humidity</button>
+                <label class="switch">
+                    <input type="checkbox" name="humidity" onchange="toggleDataFlow(this)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="BtnGroup">
+                <button class="regularButton" id="pressure" onclick="buttonClick(id)">Pressure</button>
+                <label class="switch">
+                    <input type="checkbox" name="pressure" onchange="toggleDataFlow(this)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="outerContainer">
+            <div class="chartContainer">
+                <canvas id="temperatureChart" data-created=0 data-label="Temperature (°C)"
+                    data-border-color="#6EF195"></canvas>
+
+                <canvas id="humidityChart" data-created=0 data-label="Humidity (%)"
+                    data-border-color="#42047E"></canvas>
+
+                <canvas id="pressureChart" data-created=0 data-label="Pressure (%)"
+                    data-border-color="#00E3FD"></canvas>
+
+                <canvas id="analyticChart" data-created=0 data-label="N/A" data-border-color="#2E5489"></canvas>
+            </div>
+
+            <div class="statsContainer">
+                <div id="StatsMax" class="statsBox"></div>
+                <div id="StatsMin" class="statsBox"></div>
+                <div id="StatsAverage" class="statsBox"></div>
+                <button class="analyticsButton" onclick="displayAnalytics()">Analytics</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script type="text/javascript" charset="utf-8">
+
+        var chartTypes = ["temperature", "humidity", "pressure", 'analytic'];
+        var chartInit = false;
+        var currentChart = "none";
+
+        async function toggleDataFlow(checkboxElem) {
+
+            var action = '';
+            checkboxElem.checked ? action = 'start' : action = 'stop';
+            const response = await fetch('/button/'+action+'/'+ checkboxElem.name, { method: 'POST' });
+
+            if (!response.ok) {
+                alert("Failed to fetch data")
+            }
+        }
+
+        function buttonClick(id) {
+            const collection = document.getElementsByClassName("regularButton");
+
+            collection[0].style.borderBottomWidth = "0px";
+            collection[1].style.borderBottomWidth = "0px";
+            collection[2].style.borderBottomWidth = "0px";
+
+            document.getElementById(id).style.borderBottomWidth = "5px";
+            document.getElementById(id).style.borderBottom = "solid black";
+
+            displayChart(id);
+        }
+
+        function displayAnalytics() {
+            displayChart('analytic');
+            // implement after merge
+        }
+
+        function displayChart(next) {
+            if (!chartInit) {
+                currentChart = next;
+                chartInit = true
+            }
+            document.getElementById(currentChart + 'Chart').style.display = "none";
+            document.getElementById(next + 'Chart').style.display = "";
+            currentChart = next;
+        }
+
+        function updateChart(sensorTag, msg) {
+            const chart = Chart.getChart(sensorTag + 'Chart');
+            if (chart.data.labels.length >= 10) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.data.labels.push(msg.timestamp);
+            chart.data.datasets[0].data.push(msg.value);
+            chart.update();
+
+        }
+
+        function init() {
+
+            for (var i = 0; i < chartTypes.length; i++) {
+                name = chartTypes[i] + 'Chart';
+                el = document.getElementById(name);
+                el.style.display = "none";
+                const chart = new Chart(el, {
+                    type: "line",
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: el.dataset.label,
+                                data: [],
+                                borderColor: el.dataset.borderColor,
+                                lineTension: 0.2
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+
+                    },
+                });
+            }
+        }
+
+        var socket = io();
+        socket.on('connect', function () {
+            socket.emit('client_connect', { data: 'Client connected to socket!' });
+        });
+
+        socket.on('mqtt_message', function (msg) {
+            console.log("WEB CLIENT Received MQTT message: ", msg);
+            console.log("Sensor ID: ", msg.sensor_id);
+            console.log("Value: ", msg.value);
+            console.log("Timestamp: ", msg.timestamp);
+
+            units = { temperature: '°C', humidity: '%', pressure: '%' } // right units?
+
+            if (currentChart == msg.sensor_id) {
+                document.getElementById("currentMeasurement").innerHTML = msg.value + ' ' + units[msg.sensor_id];
+                updateChart(currentChart, msg);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
