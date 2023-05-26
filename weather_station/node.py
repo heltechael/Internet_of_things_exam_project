@@ -1,4 +1,4 @@
-import time
+import asyncio
 import json
 from random import randrange
 import paho.mqtt.client as mqtt
@@ -16,14 +16,16 @@ class Node:
         self.client.on_publish = self.on_publish
         self.client.on_disconnect = self.on_disconnect
         self.client.message_callback_add("weather_station/request_data", self.handle_request_data)
+        self.active_sensors = set()
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
 
-    def get_fake_sensor_data(self):
-        time.sleep(1)
-        return {
-            'temperature': Measurement("temperature", randrange(10)),
-            'humidity': Measurement("humidity", randrange(10)),
-            'pressure': Measurement("pressure", randrange(10)),
-        }
+    async def get_fake_sensor_data(self, sensor_type):
+        while sensor_type in self.active_sensors:
+            measurement = Measurement(sensor_type, randrange(10))
+            self.client.publish(f"weather_station/{sensor_type}", json.dumps(measurement.to_dict()))
+            print(json.dumps(measurement.to_dict()))
+            await asyncio.sleep(1)
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected to MQTT broker on node.py with result code: " + str(rc))
@@ -36,31 +38,16 @@ class Node:
         # Start
         if payload.startswith("start"):
             print(f"Starting measurements for {sensor_type}!")
-            self.subscribe(client, sensor_type)
+            self.active_sensors.add(sensor_type)
+            asyncio.run_coroutine_threadsafe(self.get_fake_sensor_data(sensor_type), self.loop)
 
         # Stop
         elif payload.startswith("stop"):
             print(f"Stopping measurements for {sensor_type}!")
-            self.unsubscribe(client, sensor_type)
-
-    def subscribe(self, client, sensor_type):
-        client.subscribe(f"weather_station/{sensor_type}")
-        self.publish_sensor_data(client, sensor_type)
-
-    def unsubscribe(self, client, sensor_type):
-        client.unsubscribe(f"weather_station/{sensor_type}")
-
-    def publish_sensor_data(self, client, sensor_type):
-        sensor_data = self.get_fake_sensor_data()[sensor_type]
-        client.publish(f"weather_station/{sensor_type}", json.dumps(sensor_data.to_dict()))
-        print(json.dumps(sensor_data.to_dict()))
+            self.active_sensors.remove(sensor_type)
 
     def on_message(self, client, userdata, message):
-        topic = message.topic
-        payload = message.payload.decode()
-        if "weather_station/" in topic:
-            sensor_type = topic.split('/')[1]
-            self.publish_sensor_data(client, sensor_type)
+        pass
 
     def on_publish(self, client, userdata, mid):
         print("Message published with MID: " + str(mid))
@@ -72,8 +59,7 @@ class Node:
         self.client.connect(self.broker_url, self.broker_port)
         self.client.loop_start()
         try:
-            while True:
-                time.sleep(1)
+            self.loop.run_forever()
         except KeyboardInterrupt:
             pass
         self.client.loop_stop()
