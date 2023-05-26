@@ -55,7 +55,7 @@ class Server:
                 pass
 
             # Update latency file
-            if (self.latency.get_count % 10 == 0):
+            if ((self.latency.get_count() % 10) == 0):
                 self.latency.save_csv()
 
         self.app.route('/')(self.index)
