@@ -20,9 +20,9 @@ class Node:
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
 
-    async def get_fake_sensor_data(self, sensor_type):
+    async def get_sensor_data(self, sensor_type):
         while sensor_type in self.active_sensors:
-            measurement = Measurement(sensor_type, randrange(10))
+            measurement = Measurement(sensor_type)
             self.client.publish(f"weather_station/{sensor_type}", json.dumps(measurement.to_dict()))
             print(json.dumps(measurement.to_dict()))
             await asyncio.sleep(1)
@@ -39,7 +39,7 @@ class Node:
         if payload.startswith("start"):
             print(f"Starting measurements for {sensor_type}!")
             self.active_sensors.add(sensor_type)
-            asyncio.run_coroutine_threadsafe(self.get_fake_sensor_data(sensor_type), self.loop)
+            asyncio.run_coroutine_threadsafe(self.get_sensor_data(sensor_type), self.loop)
 
         # Stop
         elif payload.startswith("stop"):
