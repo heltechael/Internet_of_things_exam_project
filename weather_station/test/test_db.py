@@ -1,4 +1,4 @@
-from analytics import Analytics
+from ..analytics import Analytics
 
 analytics = Analytics('database2.db')
 

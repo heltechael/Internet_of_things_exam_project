@@ -2,7 +2,6 @@ import time
 import json
 from random import randrange
 import paho.mqtt.client as mqtt
-from datetime import datetime
 
 # Import classes
 from .measurement import Measurement
