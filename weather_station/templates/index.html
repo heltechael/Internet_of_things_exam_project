@@ -10,7 +10,7 @@
 
 </head>
 
-<body onload="init();">
+<body onload="loadPage();">
     <div class="banner">
         <h1 id="weatherStation">Weather Station</h1>
         <h2 id="currentMeasurement">0</h2>
@@ -54,10 +54,33 @@
             </div>
 
             <div class="statsContainer">
-                <div id="StatsMax" class="statsBox"></div>
-                <div id="StatsMin" class="statsBox"></div>
-                <div id="StatsAverage" class="statsBox"></div>
-                <button class="analyticsButton" onclick="displayAnalytics()">Analytics</button>
+                <div class="statsBox">
+                    <div class="HeaderContainer">
+                        <h2 class="statsHeader">Maximum:</h2>
+                    </div>
+                    <div class="NumberContainer">
+                        <h2 id="statsMax" class="statsNumber"></h2>
+                    </div>
+                </div>
+                <div class="statsBox">
+                    <div class="HeaderContainer">
+                        <h2 class="statsHeader">Minimum:</h2>
+                    </div>
+                    <div class="NumberContainer">
+                        <h2 id="statsMin" class="statsNumber"></h2>
+                    </div>
+                </div>
+                <div class="statsBox">
+                    <div class="HeaderContainer">
+                        <h2 class="statsHeader">Average:</h2>
+                    </div>
+                    <div class="NumberContainer">
+                        <h2 id="statsAvg" class="statsNumber"></h2>
+                    </div>
+                </div>
+
+
+                <button class="analyticsButton" onclick="displayAnalyticChart()">Analytics</button>
             </div>
         </div>
     </div>
@@ -74,7 +97,7 @@
 
             var action = '';
             checkboxElem.checked ? action = 'start' : action = 'stop';
-            const response = await fetch('/button/'+action+'/'+ checkboxElem.name, { method: 'POST' });
+            const response = await fetch('/button/' + action + '/' + checkboxElem.name, { method: 'POST' });
 
             if (!response.ok) {
                 alert("Failed to fetch data")
@@ -94,9 +117,15 @@
             displayChart(id);
         }
 
-        function displayAnalytics() {
+        function displayAnalyticChart() {
             displayChart('analytic');
-            // implement after merge
+            // implement if we get an analytic chart
+        }
+
+        function displayAnalytic(msg){
+            document.getElementById('statsMax').innerHTML = msg.max;
+            document.getElementById('statsMin').innerHTML = msg.min;
+            document.getElementById('statsAvg').innerHTML = Math.round(msg.avg * 10) / 10;
         }
 
         function displayChart(next) {
@@ -121,7 +150,7 @@
 
         }
 
-        function init() {
+        function loadPage() {
 
             for (var i = 0; i < chartTypes.length; i++) {
                 name = chartTypes[i] + 'Chart';
@@ -166,6 +195,11 @@
                 document.getElementById("currentMeasurement").innerHTML = msg.value + ' ' + units[msg.sensor_id];
                 updateChart(currentChart, msg);
             }
+        });
+
+        socket.on('analytic_message', function (msg) {
+            console.log("WEB CLIENT Received analytic message: ", msg);
+            displayAnalytic(msg);
         });
 
     </script>

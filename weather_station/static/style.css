@@ -92,9 +92,32 @@
   border-radius: 20px;
   box-shadow: 5px 5px 10px #888888;
   background: white;
+  display: flex;
+  flex-direction: column ;
 
 }
 
+.HeaderContainer{
+  display: flex;
+  justify-content: flex-start;
+}
+
+.statsHeader{
+  font-size: 17;
+  font-weight: 500;
+  margin-left: 3%;
+  margin-top: 2%;
+}
+
+.statsNumber{
+  font-size: 25;
+  font-weight: 600;
+}
+
+.NumberContainer{
+  display: flex;
+  justify-content: center;
+}
 /* The switch - the box around the slider */
 .switch {
   position: relative;
