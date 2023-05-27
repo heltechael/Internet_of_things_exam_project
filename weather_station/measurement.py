@@ -13,11 +13,11 @@ class Measurement:
         else:
             match sensor_id:
                 case 'temperature':
-                    self.value = randrange(10)#sense.get_temperature()
+                    self.value = sense.get_temperature()
                 case 'humidity':
-                    self.value = randrange(10)#sense.get_humidity()
+                    self.value = sense.get_humidity()
                 case 'pressure':
-                    self.value = randrange(10)#sense.get_pressure()
+                    self.value = sense.get_pressure()
 
         self.timestamp = timestamp if timestamp else datetime.utcnow()
 

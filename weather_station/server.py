@@ -100,7 +100,7 @@ class Server:
     def run(self):
         host_local_computer = "localhost"   # Listen for connections on the local computer
         host_local_network = "0.0.0.0"      # Listen for connections on the local network
-        self.socketio.run(self.app, allow_unsafe_werkzeug=True, host=host_local_network if False else host_local_computer, port=9000)
+        self.socketio.run(self.app, host=host_local_network if False else host_local_computer, port=9000)
 
 if __name__ == "__main__":
     server = Server()

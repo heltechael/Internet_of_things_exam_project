@@ -4,10 +4,10 @@ from random import randrange
 import paho.mqtt.client as mqtt
 
 # Import classes
-from .measurement import Measurement
+from measurement import Measurement
 
 class Node:
-    def __init__(self, broker_url="localhost", broker_port=9001):
+    def __init__(self, broker_url = "192.168.217.240", broker_port = 9001):
         self.broker_url = broker_url
         self.broker_port = broker_port
         self.client = mqtt.Client()
