@@ -13,8 +13,8 @@ Members:
 
 ## Run the MQTT broker using Mosquitto
 1) Make sure an MQTT broker is installed (e.g. Mosquitto)
-2) Open terminal and navigate to the mosquitto directory (e.g. </code>/usr/share/doc/mosquitto/examples/</code>)
-3) start mosquitto: </code>mosquitto -c /mosquitto.conf -v</code>.
+2) Open terminal and navigate to the mosquitto directory (e.g. <code>/usr/share/doc/mosquitto/examples/</code>)
+3) Start mosquitto: <code>mosquitto -c /mosquitto.conf -v</code>.
 
 ## Run Server and Node
 1) Run server: open new terminal in root directory <code>python -m weather_station.server</code>.
