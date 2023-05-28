@@ -1,8 +1,8 @@
 from datetime import datetime
 from random import randrange
-#from sense_hat import SenseHat
+from sense_hat import SenseHat
 
-#sense = SenseHat()
+sense = SenseHat()
 
 class Measurement:
     def __init__(self, sensor_id: str, value: float = None, timestamp: datetime = None):
