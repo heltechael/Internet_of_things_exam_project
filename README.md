@@ -9,20 +9,19 @@ Members:
 
 ## Installation
 1) Navigate to root directory
-1) Install dependencies with <code>python setup.py install</code>.
+1) Install dependencies with <code>pip -r install requirements.txt</code>.
 
 ## Run the MQTT broker using Mosquitto
 1) Make sure an MQTT broker is installed (e.g. Mosquitto)
-2) Open terminal and start mosquitto: </code>mosquitto -p 9001</code>.
+2) Open terminal and navigate to the mosquitto directory (e.g. </code>/usr/share/doc/mosquitto/examples/</code>)
+3) start mosquitto: </code>mosquitto -c /mosquitto.conf -v</code>.
 
 ## Run Server and Node
-1) Run server: open new terminal in root directory <code>python server.py</code>.
-2) Open new terminal and connect nodes: <code>python node.py</code>.
+1) Run server: open new terminal in root directory <code>python -m weather_station.server</code>.
+2) Open new terminal and connect nodes: <code>python -m weather_station.node</code>.
 
-## Making sure everything works locally
-1) In terminal
-   1) Type <code>curl http://localhost:9000/hello</code>.
-   2) If message <code>Hello World!</code> is received, the server is started correctly.
-2) In browser
-   1) Type <code>http://localhost:9000/hello</code> in browser.
-   2) If index page is loaded, server is started correctly.
+## Making sure the server works
+1) In terminal: <code>python -m weather_station.test.test_server</code>.
+
+## Making sure the web app works
+1) Navigate to browser and enter the url: </code>http://localhost:9000/</code>.
