@@ -92,6 +92,8 @@
         var chartTypes = ["temperature", "humidity", "pressure", 'analytic'];
         var chartInit = false;
         var currentChart = "none";
+        var units = { temperature: '°C', humidity: '%', pressure: 'millibars' }
+
 
         async function toggleDataFlow(checkboxElem) {
 
@@ -122,10 +124,10 @@
             // implement if we get an analytic chart
         }
 
-        function displayAnalytic(msg){
-            document.getElementById('statsMax').innerHTML = msg.max;
-            document.getElementById('statsMin').innerHTML = msg.min;
-            document.getElementById('statsAvg').innerHTML = Math.round(msg.avg * 10) / 10;
+        function displayAnalytic(msg, id) {
+            document.getElementById('statsMax').innerHTML = msg.max + ' ' + units[id];
+            document.getElementById('statsMin').innerHTML = msg.min + ' ' + units[id];
+            document.getElementById('statsAvg').innerHTML = Math.round(msg.avg * 10) / 10 + ' ' + units[id];
         }
 
         function displayChart(next) {
@@ -144,7 +146,17 @@
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
             }
-            chart.data.labels.push(msg.timestamp);
+
+            var last_samples_avg = chart.data.datasets[0].data.reduce((partialSum, a) => partialSum + a, 0)/10;
+            chart.options.scales.y.suggestedMax = last_samples_avg + 5;
+            chart.options.scales.y.suggestedMin = last_samples_avg - 5;
+
+            const dateObj = new Date(msg.timestamp)
+            const hour = dateObj.getUTCHours()+4;
+            const minute = dateObj.getUTCMinutes();
+            const seconds = dateObj.getUTCSeconds();
+
+            chart.data.labels.push(`${hour}:${minute}:${seconds}`);
             chart.data.datasets[0].data.push(msg.value);
             chart.update();
 
@@ -171,8 +183,13 @@
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false
-
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                suggestedMin: 0,
+                                suggestedMax: 0
+                            }
+                        }
                     },
                 });
             }
@@ -189,8 +206,6 @@
             console.log("Value: ", msg.value);
             console.log("Timestamp: ", msg.timestamp);
 
-            units = { temperature: '°C', humidity: '%', pressure: '%' } // right units?
-
             if (currentChart == msg.sensor_id) {
                 document.getElementById("currentMeasurement").innerHTML = msg.value + ' ' + units[msg.sensor_id];
                 updateChart(currentChart, msg);
@@ -199,7 +214,11 @@
 
         socket.on('analytic_message', function (msg) {
             console.log("WEB CLIENT Received analytic message: ", msg);
-            displayAnalytic(msg);
+
+            if (currentChart == msg.ID) {
+                displayAnalytic(msg.analytics, msg.ID);
+
+            }
         });
 
     </script>

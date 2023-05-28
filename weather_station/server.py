@@ -6,13 +6,14 @@ from random import randrange
 import logging
 import json
 from json import loads, JSONDecodeError
-import sqlite3
+from datetime import datetime
 
 # import classes
 from .measurement import Measurement
+from .database import Database
+from .latency import Latency
 from .analytics import Analytics
 
-#instantiate analytic object from db
 analytics = Analytics('database2.db')
 
 analyticContainer = {
@@ -39,8 +40,8 @@ analyticContainer = {
         }
     }
 
-class Server:
 
+class Server:
     def __init__(self):
         # Instantiate the Flask app
         self.app = Flask(__name__)
@@ -65,82 +66,38 @@ class Server:
 
         @self.mqtt.on_message()
         def handle_mqtt_message(client, userdata, message):
+            server_timestamp = datetime.utcnow()
             print("Received message: ", message.payload.decode())
             data = message.payload.decode()
             try:
                 data_dict = json.loads(data)
                 measurement = Measurement.from_dict(data_dict)
                 self.socketio.emit('mqtt_message', measurement.to_dict())
-
+                
                 # Store in DB:
-                # Database connection and insert
                 with self.app.app_context():
-                    conn = self.get_db()
-                    c = conn.cursor()
-                    c.execute("INSERT INTO measurements (sensor_id, value, timestamp) VALUES (?, ?, ?)",
-                            (measurement.sensor_id, measurement.value, measurement.timestamp))
-                    conn.commit()
-
+                    self.db.insert_measurement(measurement)
+                    self.latency.add_measurement(measurement.sensor_id, server_timestamp, measurement.timestamp)
                 self.update_analytic(measurement.to_dict())    
             except JSONDecodeError:
                 pass
 
+            # Update latency file
+            if ((self.latency.get_count() % 10) == 0):
+                self.latency.save_csv()
+        
         self.app.route('/')(self.index)
         self.app.route('/hello', methods=['GET', 'POST'])(self.hello)
         self.app.route('/button/<string:action>/<string:sensor_type>', methods=['POST'])(self.button)
         self.app.errorhandler(500)(self.server_error)
         self.socketio.on('client_connect')(self.handle_my_custom_event)
 
-        self.init_db()
+        # Init db
+        self.db = Database(self.app)
+        self.db.init_db()
 
-    def get_db(self):
-        db = getattr(g, '_database', None)
-        if db is None:
-            db = g._database = sqlite3.connect('database2.db')
-        return db
-
-    def close_connection(self, exception):
-        db = getattr(g, '_database', None)
-        if db is not None:
-            db.close()
-
-    def init_db(self):
-        with self.app.app_context():
-            db = self.get_db()
-            c = db.cursor()
-            c.execute("DROP TABLE IF EXISTS measurements")
-            with self.app.open_resource('schema.sql', mode='r') as f:
-                c.executescript(f.read())
-            db.commit()
-
-    def handle_mqtt_connect(self, client, userdata, flags, rc):
-        print("Connected to MQTT broker in server.py")
-        self.mqtt.subscribe("weather_station/temperature")
-        self.mqtt.subscribe("weather_station/humidity")
-        self.mqtt.subscribe("weather_station/pressure")
-        self.mqtt.subscribe("weather_station/+")
-
-    def handle_mqtt_subscribe(self, client, userdata, mid, granted_qos):
-        print("Subscribed to weather_station/+ in server.py")
-
-    def handle_mqtt_message(self, client, userdata, message):
-        print("Received message: ", message.payload.decode())
-        data = message.payload.decode()
-        try:
-            data_dict = json.loads(data)
-            measurement = Measurement.from_dict(data_dict)
-            self.socketio.emit('mqtt_message', measurement.to_dict())
-
-            # Store in DB:
-            # Database connection and insert
-            with self.app.app_context():
-                conn = self.get_db()
-                c = conn.cursor()
-                c.execute("INSERT INTO measurements (sensor_id, value, timestamp) VALUES (?, ?, ?)",
-                        (measurement.sensor_id, measurement.value, measurement.timestamp))
-                conn.commit()
-        except JSONDecodeError:
-            pass
+        # Create the Latency object as a global variable
+        self.latency = Latency()
 
     def index(self):
         return render_template('index.html')
@@ -167,36 +124,35 @@ class Server:
 
     def handle_my_custom_event(self, json):
         print('received json: ' + str(json))
-
+    
     def update_analytic(self, measurement):
 
         id = measurement['sensor_id']
 
         if analyticContainer[id]['first_measurement']:
                 analyticContainer[id]['count'] += 1
-                #round the max with last two decimals
-                analyticContainer[id]['max'] = round(analytics.get_max(id),2)
+                analyticContainer[id]['max'] = analytics.get_max(id)
                 analyticContainer[id]['min'] = analytics.get_min(id)
                 analyticContainer[id]['avg'] = analytics.get_avg(id)
                 analyticContainer[id]['first_measurement'] = False
-                self.socketio.emit('analytic_message', analyticContainer[id])
+                self.socketio.emit('analytic_message', {'analytics': analyticContainer[id], 'ID': id })
 
         else:
             if measurement['value'] > analyticContainer[id]['max']:
                 analyticContainer[id]['max'] = analytics.get_max(id)
-                self.socketio.emit('analytic_message', analyticContainer[id])
+                self.socketio.emit('analytic_message', {'analytics': analyticContainer[id], 'ID': id })
 
             elif measurement['value'] < analyticContainer[id]['min']:
                 analyticContainer[id]['min'] = analytics.get_min(id)
-                self.socketio.emit('analytic_message', analyticContainer[id])
+                self.socketio.emit('analytic_message', {'analytics': analyticContainer[id], 'ID': id })
             
             if analyticContainer[id]['count'] == 10:
                 analyticContainer[id]['count'] = 0
                 analyticContainer[id]['avg'] = analytics.get_avg(id)
-                self.socketio.emit('analytic_message', analyticContainer[id])
+                self.socketio.emit('analytic_message', {'analytics': analyticContainer[id], 'ID': id })
             else:
                 (measurement['value'] + analyticContainer[id]['avg']) / (analyticContainer[id]['count']+1)
-                self.socketio.emit('analytic_message', analyticContainer[id])
+                self.socketio.emit('analytic_message', {'analytics': analyticContainer[id], 'ID': id })
           
             analyticContainer[id]['count'] += 1
 
@@ -204,7 +160,7 @@ class Server:
     def run(self):
         host_local_computer = "localhost"   # Listen for connections on the local computer
         host_local_network = "0.0.0.0"      # Listen for connections on the local network
-        self.socketio.run(self.app, host=host_local_network if False else host_local_computer, port=9000)
+        self.socketio.run(self.app, host=host_local_network if False else host_local_computer, port=8000)
 
 if __name__ == "__main__":
     server = Server()

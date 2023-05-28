@@ -1,0 +1,10 @@
+Date 27.05.23, Time 17:34:31, Uptime:  17:34:31 up  1:01,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=50.6'C, CPU_temp: 50.6°C, CPU_load: 6.4%
+Date 27.05.23, Time 17:35:31, Uptime:  17:35:31 up  1:02,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=50.6'C, CPU_temp: 49.7°C, CPU_load: 7.9%
+Date 27.05.23, Time 17:36:31, Uptime:  17:36:31 up  1:03,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=51.1'C, CPU_temp: 51.1°C, CPU_load: 6.5%
+Date 27.05.23, Time 17:37:31, Uptime:  17:37:31 up  1:04,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=50.6'C, CPU_temp: 50.6°C, CPU_load: 6.4%
+Date 27.05.23, Time 17:38:32, Uptime:  17:38:32 up  1:05,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=51.6'C, CPU_temp: 51.6°C, CPU_load: 6.5%
+Date 27.05.23, Time 17:39:32, Uptime:  17:39:32 up  1:06,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=51.1'C, CPU_temp: 51.1°C, CPU_load: 5.5%
+Date 27.05.23, Time 17:40:32, Uptime:  17:40:32 up  1:07,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=53.0'C, CPU_temp: 53.1°C, CPU_load: 5.3%
+Date 27.05.23, Time 17:41:33, Uptime:  17:41:33 up  1:08,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=53.0'C, CPU_temp: 53.1°C, CPU_load: 5.5%
+Date 27.05.23, Time 17:42:33, Uptime:  17:42:33 up  1:09,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=51.6'C, CPU_temp: 51.6°C, CPU_load: 2.9%
+Date 27.05.23, Time 17:43:33, Uptime:  17:43:33 up  1:10,  4 users,  load average: 0.00, 0.00, 0.00, Load average:  0.00, 0.00, 0.00, GPU_temp=temp=51.6'C, CPU_temp: 51.6°C, CPU_load: 4.1%

@@ -1,8 +1,8 @@
 from datetime import datetime
 from random import randrange
-from sense_hat import SenseHat
+#from sense_hat import SenseHat
 
-sense = SenseHat()
+#sense = SenseHat()
 
 class Measurement:
     def __init__(self, sensor_id: str, value: float = None, timestamp: datetime = None):
@@ -12,11 +12,11 @@ class Measurement:
             self.value = value
         else:
             if sensor_id == 'temperature':
-                self.value = round(sense.get_temperature(),2)
+                self.value = sense.get_temperature()
             elif sensor_id == 'humidity':
-                self.value = round(sense.get_humidity(),2)
+                self.value = sense.get_humidity()
             elif sensor_id == 'pressure':
-                self.value = round(sense.get_pressure(),2)
+                self.value = sense.get_pressure()
             else:
                 # Handle the case when sensor_id does not match any known sensor
                 self.value = None  # or assign a default value or raise an exception
@@ -37,5 +37,3 @@ class Measurement:
             value=data['value'],
             timestamp=datetime.fromisoformat(data['timestamp']) if data.get('timestamp') else None
         )
-
-
